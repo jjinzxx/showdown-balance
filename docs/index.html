@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHOWDOWN 밸런스 테스트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0c0a09; --panel:#15110e; --panel2:#1c1713; --line:#2e261f;
+  --ink:#cfc6b6; --dim:#857a6a; --faint:#574e42;
+  --red:#c0392f; --red-dim:#7a241d; --amber:#c9982f; --green:#7a9a5a;
+  --mono:ui-monospace,'Cascadia Mono','Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-color:var(--faint) var(--bg)}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--mono);
+  font-size:13px; line-height:1.6; min-height:100vh; padding:24px 16px 80px;
+}
+body::after{ /* CRT 스캔라인 */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.13) 0 1px, transparent 1px 3px);
+  mix-blend-mode:multiply;
+}
+@media (prefers-reduced-motion:no-preference){
+  .blink{animation:blink 1.2s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+}
+.wrap{max-width:1060px;margin:0 auto}
+header{border:1px solid var(--line); background:var(--panel); padding:18px 20px 14px; position:relative; margin-bottom:18px}
+header::before{content:"REC ●"; position:absolute; top:10px; right:14px; color:var(--red); font-size:11px; letter-spacing:.12em}
+h1{font-size:21px; letter-spacing:.34em; font-weight:700; color:var(--ink)}
+h1 .x{color:var(--red)}
+.sub{color:var(--dim); font-size:11.5px; margin-top:4px; letter-spacing:.05em}
+.tape{display:inline-block; border:1px solid var(--faint); color:var(--dim); font-size:10.5px; padding:1px 8px; letter-spacing:.18em; margin-top:10px}
+h2{font-size:12px; letter-spacing:.26em; color:var(--amber); border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:14px; font-weight:700}
+h2 .ref{color:var(--faint); letter-spacing:.06em; font-weight:400; float:right}
+section{border:1px solid var(--line); background:var(--panel); padding:16px 18px; margin-bottom:16px}
+label{display:block; color:var(--dim); font-size:11px; letter-spacing:.08em; margin-bottom:3px}
+select,input[type=number]{
+  width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--line);
+  font-family:var(--mono); font-size:12.5px; padding:5px 7px; border-radius:0;
+}
+select:focus,input:focus,button:focus-visible{outline:1px solid var(--amber); outline-offset:1px}
+input[type=range]{width:100%; accent-color:var(--red)}
+.grid{display:grid; gap:12px}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:1fr 1fr}
+@media(max-width:760px){.g3,.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+.field{margin-bottom:10px}
+.val{color:var(--amber); float:right; font-size:11px}
+.presets{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px}
+button{
+  background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+  font-family:var(--mono); font-size:12px; letter-spacing:.1em; padding:7px 14px; cursor:pointer;
+}
+button:hover{border-color:var(--amber); color:var(--amber)}
+button.primary{background:var(--red-dim); border-color:var(--red); color:#f0e2da; font-weight:700; letter-spacing:.2em; padding:10px 26px}
+button.primary:hover{background:var(--red); color:#fff}
+button.active{border-color:var(--amber); color:var(--amber); background:#221b10}
+button:disabled{opacity:.45; cursor:wait}
+.agents{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media(max-width:760px){.agents{grid-template-columns:1fr}}
+.agent{border:1px dashed var(--line); padding:12px 14px}
+.agent h3{font-size:11.5px; letter-spacing:.2em; margin-bottom:10px; color:var(--ink)}
+.agent.boss h3{color:var(--red)}
+.toggle{display:flex; align-items:center; gap:8px; color:var(--ink); font-size:12px; cursor:pointer; margin-bottom:6px}
+.toggle input{accent-color:var(--red); width:14px; height:14px}
+.exp-detail{padding-left:22px; color:var(--dim); font-size:11px}
+.exp-detail input{width:52px; display:inline-block; padding:2px 5px; margin:0 4px}
+.runbar{display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+.progress{flex:1; min-width:160px; height:8px; background:var(--bg); border:1px solid var(--line)}
+.progress i{display:block; height:100%; width:0%; background:var(--red); transition:width .1s}
+.cards{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px}
+@media(max-width:760px){.cards{grid-template-columns:1fr 1fr}}
+.card{border:1px solid var(--line); background:var(--panel2); padding:10px 12px}
+.card b{display:block; font-size:20px; color:var(--ink); font-weight:700; margin-top:2px}
+.card span{font-size:10.5px; color:var(--dim); letter-spacing:.08em}
+.card.warn b{color:var(--red)}
+.card.ok b{color:var(--green)}
+.card small{display:block; color:var(--faint); font-size:10px; margin-top:2px}
+.charts{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media(max-width:760px){.charts{grid-template-columns:1fr}}
+.chartbox{border:1px solid var(--line); background:var(--panel2); padding:10px; height:230px; position:relative}
+.cyl-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap; border:1px dashed var(--line); padding:12px 14px; margin-bottom:14px}
+.cyl-note{color:var(--dim); font-size:11.5px; max-width:560px}
+table{width:100%; border-collapse:collapse; font-size:12px}
+th,td{border:1px solid var(--line); padding:5px 8px; text-align:center}
+th{color:var(--dim); font-weight:400; letter-spacing:.06em; background:var(--panel2)}
+td.diag{color:var(--faint)}
+#matrixNote,#diag{color:var(--dim); font-size:11.5px; margin-top:10px}
+#diag li{margin-left:18px; margin-top:4px}
+#diag .bad{color:var(--red)} #diag .good{color:var(--green)} #diag .mid{color:var(--amber)}
+pre#trace{
+  background:var(--bg); border:1px solid var(--line); padding:12px; font-size:11.5px;
+  color:var(--dim); max-height:260px; overflow:auto; white-space:pre-wrap;
+}
+footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px; letter-spacing:.1em}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>SHOW<span class="x">DOWN</span> 밸런스 검증</h1>
+  <div class="sub">수치 밸런싱 몬테카를로 시뮬레이터 · GDD v1.5 §2.3 / §3.3 / §9.4 연동 · 시드 고정 재현 가능</div>
+  <div class="tape">TAPE 01 — "승률, 평균베팅 등 수치화 된 데이터 검증"</div>
+</header>
+
+<!-- ============ 설정 ============ -->
+<section>
+  <h2>① 룰 설정 <span class="ref">GDD §2.3.2 / §3.3</span></h2>
+  <div class="presets">
+    <button data-stage="1">STAGE 1 — 1발 / 3목숨</button>
+    <button data-stage="2">STAGE 2 — 1발 / 3목숨 · 블러핑↑</button>
+    <button data-stage="3">STAGE 3 — 2발 / 3목숨 · 최대압박</button>
+    <button data-stage="0">CUSTOM</button>
+  </div>
+  <div class="grid g4">
+    <div class="field"><label>최소 베팅 (발)</label><input type="number" id="minBet" min="1" max="5" value="1"></div>
+    <div class="field"><label>목숨</label><input type="number" id="lives" min="1" max="6" value="3"></div>
+    <div class="field"><label>레이즈 상한 (발)</label><input type="number" id="maxRaise" min="1" max="6" value="6"></div>
+    <div class="field"><label>시뮬레이션 게임 수</label><input type="number" id="iterations" min="200" max="50000" step="100" value="5000"></div>
+  </div>
+  <div class="grid g2" style="margin-top:6px">
+    <div>
+      <label class="toggle"><input type="checkbox" id="sevenFold" checked> '7'을 들고 폴드하면 6발 강제 (§2.4)</label>
+      <label class="toggle"><input type="checkbox" id="lowGivePenalty"> [실험 §9.4] 저카드 보정 — 승자가 준 카드가 낮으면 패자 장전 감소</label>
+      <div class="exp-detail" id="lowGiveDetail">
+        준 카드 ≤ <input type="number" id="lowGiveThreshold" min="1" max="6" value="2">이면
+        장전 −<input type="number" id="lowGiveReduce" min="1" max="5" value="1">발
+        (최소 <input type="number" id="lowGiveFloor" min="0" max="5" value="1">발)
+      </div>
+    </div>
+    <div class="field"><label>난수 시드 (같은 시드 = 같은 결과)</label><input type="number" id="seed" value="12345"></div>
+  </div>
+</section>
+
+<!-- ============ 에이전트 ============ -->
+<section>
+  <h2>② AI 에이전트 <span class="ref">GDD §2.5 / §5.1</span></h2>
+  <div class="agents">
+    <div class="agent" id="agent0">
+      <h3>P1 — 플레이어 모델</h3>
+      <div class="field"><label>카드 제공 전략</label>
+        <select class="a-give">
+          <option value="lowest">최저 우선 (§9.4 수렴 전략)</option>
+          <option value="highest">최고 우선</option>
+          <option value="random">무작위</option>
+          <option value="weighted">저카드 가중 (편향 조절)</option>
+          <option value="mixed">전술 혼합 (70/20/10)</option>
+        </select>
+      </div>
+      <div class="field"><label>저카드 편향 <span class="val">0.70</span></label><input type="range" class="a-lowBias" min="0" max="1" step="0.05" value="0.7"></div>
+      <div class="field"><label>블러핑 빈도 <span class="val">0.15</span></label><input type="range" class="a-bluff" min="0" max="0.6" step="0.05" value="0.15"></div>
+      <div class="field"><label>공격성 (레이즈 크기) <span class="val">0.50</span></label><input type="range" class="a-aggr" min="0" max="1" step="0.05" value="0.5"></div>
+      <div class="field"><label>폴드 성향 <span class="val">0.00</span></label><input type="range" class="a-timid" min="-2" max="4" step="0.5" value="0"></div>
+    </div>
+    <div class="agent boss" id="agent1">
+      <h3>P2 — 보스 '수집가' 모델</h3>
+      <div class="field"><label>카드 제공 전략</label>
+        <select class="a-give">
+          <option value="lowest">최저 우선 (§9.4 수렴 전략)</option>
+          <option value="highest">최고 우선</option>
+          <option value="random">무작위</option>
+          <option value="weighted">저카드 가중 (편향 조절)</option>
+          <option value="mixed" selected>전술 혼합 (70/20/10)</option>
+        </select>
+      </div>
+      <div class="field"><label>저카드 편향 <span class="val">0.70</span></label><input type="range" class="a-lowBias" min="0" max="1" step="0.05" value="0.7"></div>
+      <div class="field"><label>블러핑 빈도 <span class="val">0.15</span></label><input type="range" class="a-bluff" min="0" max="0.6" step="0.05" value="0.15"></div>
+      <div class="field"><label>공격성 (레이즈 크기) <span class="val">0.50</span></label><input type="range" class="a-aggr" min="0" max="1" step="0.05" value="0.5"></div>
+      <div class="field"><label>폴드 성향 <span class="val">0.00</span></label><input type="range" class="a-timid" min="-2" max="4" step="0.5" value="0"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 실행 ============ -->
+<section>
+  <div class="runbar">
+    <button class="primary" id="runBtn">▶ 시뮬레이션 실행</button>
+    <button id="matrixBtn">전략 매트릭스 5×5 (§9.4 검증)</button>
+    <button id="traceBtn">샘플 게임 1회 추적</button>
+    <div class="progress"><i id="progBar"></i></div>
+    <span id="progTxt" class="sub">대기 중<span class="blink">_</span></span>
+  </div>
+</section>
+
+<!-- ============ 결과 ============ -->
+<section id="results" class="hidden">
+  <h2>③ 집계 결과 <span class="ref" id="resMeta"></span></h2>
+
+  <div class="cyl-row">
+    <svg id="cylinder" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="평균 장전 시각화"></svg>
+    <div class="cyl-note" id="cylNote"></div>
+  </div>
+
+  <div class="cards" id="statCards"></div>
+
+  <div class="charts">
+    <div class="chartbox"><canvas id="chLen"></canvas></div>
+    <div class="chartbox"><canvas id="chBet"></canvas></div>
+    <div class="chartbox"><canvas id="chGive"></canvas></div>
+    <div class="chartbox"><canvas id="chRaise"></canvas></div>
+  </div>
+
+  <ul id="diag"></ul>
+</section>
+
+<!-- ============ 매트릭스 ============ -->
+<section id="matrixSec" class="hidden">
+  <h2>④ 카드 제공 전략 매트릭스 <span class="ref">P1 승률 % (행=P1, 열=P2) · 무승부 제외</span></h2>
+  <div style="overflow-x:auto"><table id="matrixTable"></table></div>
+  <p id="matrixNote">§9.4 가설 검증: '최저 우선' 행이 전 열에서 50%를 크게 웃돌면 카드 선택이 단조 수렴한다는 뜻.
+  저카드 보정(①의 실험 토글)을 켜고 다시 돌려 우위 폭이 줄어드는지 비교할 것.</p>
+</section>
+
+<!-- ============ 트레이스 ============ -->
+<section id="traceSec" class="hidden">
+  <h2>⑤ 샘플 게임 추적 로그 <span class="ref">규칙 동작 검수용</span></h2>
+  <pre id="trace"></pre>
+</section>
+
+<footer>SHOWDOWN BALANCE TERMINAL · TEAM 옵티머스프라임 · 결과는 AI 모델 가정에 의존하므로 Week 2 실측과 교차 검증할 것</footer>
+</div>
+
+<script>
+"use strict";
+/* ====== 시뮬레이션 코어 (노드 검증 완료본 주입 지점) ====== */
+/* ============================================================
+   SHOWDOWN 밸런스 시뮬레이터 코어 (GDD v1.5 §2 기준)
+   - 덱: 1~7 × 2 = 14장, 손패 5장, 미사용 4장
+   - 각자 손패에서 한 장을 골라 "상대" 머리 위에 부착
+   - 베팅: 최소 베팅으로 시작, 가변 레이즈(최종 베팅 1~6발 지정)
+   - 패자(또는 폴드한 쪽)가 자기 건 총알 수만큼 장전 후 룰렛
+   - 동점: 양쪽 동시 룰렛 / 7+폴드: 무조건 6발
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+
+const GIVE_STRATEGIES = {
+  lowest:   "최저 우선",
+  highest:  "최고 우선",
+  random:   "무작위",
+  weighted: "저카드 가중",
+  mixed:    "전술 혼합",
+};
+
+function defaultAgent(){
+  return {
+    give: "lowest",
+    lowBias: 0.7,
+    bluffRate: 0.15,
+    aggression: 0.5,
+    timidity: 0.0,
+    noise: 0.05,
+  };
+}
+
+/* ---------- 카드 제공 ---------- */
+function pickGive(agent, hand, rng){
+  const sorted = [...hand].sort((a,b)=>a-b);
+  const r = rng();
+  switch(agent.give){
+    case "lowest":  return sorted[0];
+    case "highest": return sorted[sorted.length-1];
+    case "random":  return hand[Math.floor(rng()*hand.length)];
+    case "weighted": {
+      const b = agent.lowBias;
+      const ws = sorted.map((c,i)=>Math.pow(1-b+1e-6, i));
+      const tot = ws.reduce((s,w)=>s+w,0);
+      let x = rng()*tot;
+      for(let i=0;i<sorted.length;i++){ x-=ws[i]; if(x<=0) return sorted[i]; }
+      return sorted[sorted.length-1];
+    }
+    case "mixed": {
+      if(r<0.70) return sorted[0];
+      if(r<0.90) return sorted[Math.floor(sorted.length/2)];
+      return sorted[sorted.length-1];
+    }
+    default: return sorted[0];
+  }
+}
+
+/* ---------- 추론: 내 머리 위 카드 후보 분포 ---------- */
+function headBelief(player){
+  const counts = new Array(8).fill(0);
+  for(let v=1;v<=7;v++) counts[v]=2;
+  for(const c of player.originalHand) counts[c]--;
+  for(const c of player.revealedOwnHeads) counts[c]--;
+  return counts;
+}
+
+function estimate(player, oppHead){
+  const counts = headBelief(player);
+  let total=0, win=0, tie=0, seven=0;
+  for(let v=1;v<=7;v++){
+    const n = Math.max(0,counts[v]);
+    total += n;
+    if(v>oppHead) win+=n;
+    else if(v===oppHead) tie+=n;
+    if(v===7) seven+=n;
+  }
+  if(total<=0) return {pWin:0.5,pTie:0,pLose:0.5,p7:0};
+  return {pWin:win/total, pTie:tie/total, pLose:(total-win-tie)/total, p7:seven/total};
+}
+
+/* ---------- 베팅 의사결정 ---------- */
+function decide(agent, est, ctx, cfg, rng){
+  const {pWin,pTie,pLose,p7} = est;
+  const cb = ctx.currentBet;
+  const noise = (rng()-0.5)*2*agent.noise;
+
+  const callNet = pWin*(cb/6) - (pLose+pTie)*(cb/6) + noise;
+  const foldBullets = ctx.myCommitted;
+  const foldNet = cfg.sevenFold
+    ? -( p7*1 + (1-p7)*(foldBullets/6) )
+    : -( foldBullets/6 );
+
+  const mustRespond = ctx.myCommitted < cb;
+  if(mustRespond && foldNet > callNet + agent.timidity*0.05){
+    return {action:"fold"};
+  }
+
+  const conf = pWin - pLose;
+  const cap = Math.min(6, ctx.maxRaise);
+  let target = 0;
+  if(conf > 0.1){
+    target = Math.round(cb + conf*agent.aggression*(cap-cb));
+  }
+  if(rng() < agent.bluffRate*(1 - Math.max(0,conf))){
+    target = Math.max(target, Math.min(cap, cb + 1 + Math.floor(rng()*(cap-cb))));
+  }
+  target = Math.min(cap, Math.max(0, target));
+  // 직전에 내가 레이즈했고 상대가 콜만 했다면, 재레이즈는 블러핑 경로로만 (연쇄 폭주 방지)
+  const justRaisedByMe = ctx.lastRaiser === ctx.meIndex;
+  const raiseChance = justRaisedByMe ? agent.bluffRate*0.5 : Math.min(1, 0.35 + Math.max(0,conf)*agent.aggression*1.2);
+  if(target > cb && ctx.raisesLeft > 0 && rng() < raiseChance){
+    return {action:"raise", target};
+  }
+  return {action:"call"};
+}
+
+/* ---------- 룰렛 ---------- */
+function roulette(bullets, rng){
+  const b = Math.min(6, Math.max(0, bullets));
+  return rng() < b/6;
+}
+
+/* ---------- 한 게임 ---------- */
+function simulateGame(cfg, agents, rng, trace){
+  const lives = [cfg.lives, cfg.lives];
+  const stats = {
+    rounds:0, folds:[0,0], showdowns:0, ties:0,
+    givenCards:[[],[]], gaveLowest:[0,0], gives:[0,0],
+    finalBets:[], rouletteShots:0, rouletteHits:0,
+    sevenFoldTriggers:0, sets:0, raiseSizes:[],
+  };
+  let first = 0;
+
+  while(lives[0]>0 && lives[1]>0 && stats.rounds < 200){
+    const deck=[];
+    for(let v=1;v<=7;v++) deck.push(v,v);
+    for(let i=deck.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+    const players=[0,1].map(i=>({
+      hand: deck.slice(i*5, i*5+5),
+      originalHand: deck.slice(i*5, i*5+5).slice(),
+      revealedOwnHeads: [],
+    }));
+    stats.sets++;
+
+    while(players[0].hand.length>0 && lives[0]>0 && lives[1]>0 && stats.rounds<200){
+      stats.rounds++;
+      const lo0 = Math.min(...players[0].hand);
+      const lo1 = Math.min(...players[1].hand);
+      const give0 = pickGive(agents[0], players[0].hand, rng);
+      const give1 = pickGive(agents[1], players[1].hand, rng);
+      players[0].hand.splice(players[0].hand.indexOf(give0),1);
+      players[1].hand.splice(players[1].hand.indexOf(give1),1);
+      stats.gives[0]++; stats.gives[1]++;
+      stats.givenCards[0].push(give0); stats.givenCards[1].push(give1);
+      if(give0===lo0) stats.gaveLowest[0]++;
+      if(give1===lo1) stats.gaveLowest[1]++;
+      const heads = [give1, give0];
+
+      const committed=[cfg.minBet, cfg.minBet];
+      let currentBet=cfg.minBet, folder=-1, actor=first, checks=0, raisesLeft=6, lastRaiser=-1;
+      while(true){
+        const me=actor, opp=1-actor;
+        const est = estimate(players[me], heads[opp]);
+        const d = decide(agents[me], est, {
+          currentBet, myCommitted:committed[me], maxRaise:cfg.maxRaise,
+          raisesLeft, lastRaiser, meIndex:me,
+        }, cfg, rng);
+        if(d.action==="fold"){ folder=me; break; }
+        if(d.action==="raise" && d.target>currentBet && raisesLeft>0){
+          currentBet=d.target; committed[me]=currentBet; raisesLeft--; checks=0; lastRaiser=me;
+          stats.raiseSizes.push(d.target);
+          actor=opp; continue;
+        }
+        committed[me]=currentBet; checks++;
+        if(checks>=2) break;
+        actor=opp;
+      }
+
+      if(trace) trace.push(`─ R${stats.rounds} | P1머리:${heads[0]} P2머리:${heads[1]} | P1이 준 카드:${give0} P2가 준 카드:${give1} | 최종베팅 ${currentBet}발${folder>=0?` | P${folder+1} 폴드`:""}`);
+      const fire=(pi,bullets,reason)=>{
+        stats.rouletteShots++;
+        const hitNow = roulette(bullets,rng);
+        if(hitNow){ stats.rouletteHits++; lives[pi]--; }
+        if(trace) trace.push(`   ${reason}: P${pi+1} 룰렛 ${bullets}/6발 → ${hitNow?"💥 명중":"틱… 생존"} (목숨 ${lives[pi]})`);
+      };
+
+      const lowAdj=(winnerGave,base)=>{
+        if(!cfg.lowGivePenalty) return base;
+        if(winnerGave<=cfg.lowGiveThreshold) return Math.max(cfg.lowGiveFloor, base-cfg.lowGiveReduce);
+        return base;
+      };
+
+      if(folder>=0){
+        stats.folds[folder]++;
+        let bullets=committed[folder];
+        if(cfg.sevenFold && heads[folder]===7){ bullets=6; stats.sevenFoldTriggers++; }
+        stats.finalBets.push(currentBet);
+        fire(folder,bullets,"폴드");
+      }else{
+        stats.showdowns++;
+        stats.finalBets.push(currentBet);
+        const h0=heads[0], h1=heads[1];
+        players[0].revealedOwnHeads.push(h0);
+        players[1].revealedOwnHeads.push(h1);
+        if(h0===h1){
+          stats.ties++;
+          fire(0,committed[0],"동점"); fire(1,committed[1],"동점");
+        }else{
+          const loser = h0>h1 ? 1 : 0;
+          const winnerGave = loser===0 ? give1 : give0; /* 승자가 패자에게 준 카드 = 패자의 머리 */
+          fire(loser, lowAdj(heads[loser], committed[loser]), "쇼다운 패배");
+        }
+      }
+      first = 1-first;
+    }
+  }
+  stats.winner = lives[0]<=0 ? (lives[1]<=0 ? -1 : 1) : 0;
+  stats.livesLeft = lives.slice();
+  return stats;
+}
+
+/* ---------- 일괄 실행 ---------- */
+function runBatch(cfg, agents, n, seed){
+  const rng = mulberry32(seed||12345);
+  const agg = {
+    games:n, winP1:0, winP2:0, draws:0,
+    rounds:[], roundCount:0,
+    folds:[0,0], gives:[0,0], gaveLowest:[0,0],
+    givenDist:[new Array(8).fill(0), new Array(8).fill(0)],
+    finalBetDist:new Array(7).fill(0), ties:0, showdowns:0,
+    rouletteShots:0, rouletteHits:0, sevenFoldTriggers:0,
+    raiseSizes:new Array(7).fill(0), setsTotal:0,
+    winnerLives:[],
+  };
+  for(let g=0; g<n; g++){
+    const s = simulateGame(cfg, agents, rng, null);
+    if(s.winner===0) agg.winP1++; else if(s.winner===1) agg.winP2++; else agg.draws++;
+    agg.rounds.push(s.rounds);
+    agg.roundCount+=s.rounds;
+    for(const i of [0,1]){
+      agg.folds[i]+=s.folds[i];
+      agg.gives[i]+=s.gives[i];
+      agg.gaveLowest[i]+=s.gaveLowest[i];
+      for(const c of s.givenCards[i]) agg.givenDist[i][c]++;
+    }
+    for(const b of s.finalBets) agg.finalBetDist[Math.min(6,b)]++;
+    for(const r of s.raiseSizes) agg.raiseSizes[Math.min(6,r)]++;
+    agg.ties+=s.ties; agg.showdowns+=s.showdowns;
+    agg.rouletteShots+=s.rouletteShots; agg.rouletteHits+=s.rouletteHits;
+    agg.sevenFoldTriggers+=s.sevenFoldTriggers;
+    agg.setsTotal+=s.sets;
+    if(s.winner>=0) agg.winnerLives.push(s.livesLeft[s.winner]);
+  }
+  return agg;
+}
+
+function entropy01(dist){
+  const tot = dist.reduce((s,x)=>s+x,0);
+  if(tot===0) return 0;
+  let h=0;
+  for(const x of dist){ if(x>0){ const p=x/tot; h-=p*Math.log2(p); } }
+  return h/Math.log2(7);
+}
+
+
+
+
+/* ============================ UI ============================ */
+const $ = (s)=>document.querySelector(s);
+const $$ = (s)=>document.querySelectorAll(s);
+
+/* 슬라이더 값 표시 */
+$$("input[type=range]").forEach(r=>{
+  const valEl = r.closest(".field").querySelector(".val");
+  const sync = ()=>{ valEl.textContent = Number(r.value).toFixed(2); };
+  r.addEventListener("input", sync); sync();
+});
+
+/* 스테이지 프리셋 (코어 검증값: S1≈13판 / S2≈10판 / S3≈4.5판) */
+const PRESETS = {
+  1:{minBet:1,lives:3,maxRaise:6, aggr:0.5, bluff:0.15},
+  2:{minBet:1,lives:3,maxRaise:6, aggr:0.55, bluff:0.25},
+  3:{minBet:2,lives:3,maxRaise:6, aggr:0.3, bluff:0.3},
+};
+$$(".presets button").forEach(b=>b.addEventListener("click",()=>{
+  $$(".presets button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  const st = +b.dataset.stage;
+  if(!st) return;
+  const p = PRESETS[st];
+  $("#minBet").value=p.minBet; $("#lives").value=p.lives; $("#maxRaise").value=p.maxRaise;
+  $$(".a-aggr").forEach(r=>{r.value=p.aggr; r.dispatchEvent(new Event("input"));});
+  $$(".a-bluff").forEach(r=>{r.value=p.bluff; r.dispatchEvent(new Event("input"));});
+}));
+
+function readCfg(){
+  return {
+    minBet:+$("#minBet").value, lives:+$("#lives").value, maxRaise:+$("#maxRaise").value,
+    sevenFold:$("#sevenFold").checked,
+    lowGivePenalty:$("#lowGivePenalty").checked,
+    lowGiveThreshold:+$("#lowGiveThreshold").value,
+    lowGiveReduce:+$("#lowGiveReduce").value,
+    lowGiveFloor:+$("#lowGiveFloor").value,
+  };
+}
+function readAgent(i){
+  const el = $("#agent"+i);
+  const a = defaultAgent();
+  a.give = el.querySelector(".a-give").value;
+  a.lowBias = +el.querySelector(".a-lowBias").value;
+  a.bluffRate = +el.querySelector(".a-bluff").value;
+  a.aggression = +el.querySelector(".a-aggr").value;
+  a.timidity = +el.querySelector(".a-timid").value;
+  return a;
+}
+
+/* ---------- 청크 비동기 실행 ---------- */
+function runBatchAsync(cfg, agents, n, seed, onProgress, onDone){
+  const rng = mulberry32(seed||12345);
+  const agg = {
+    games:n, winP1:0, winP2:0, draws:0, rounds:[], roundCount:0,
+    folds:[0,0], gives:[0,0], gaveLowest:[0,0],
+    givenDist:[new Array(8).fill(0), new Array(8).fill(0)],
+    finalBetDist:new Array(7).fill(0), ties:0, showdowns:0,
+    rouletteShots:0, rouletteHits:0, sevenFoldTriggers:0,
+    raiseSizes:new Array(7).fill(0), setsTotal:0, winnerLives:[],
+  };
+  let done=0;
+  const CHUNK=400;
+  function step(){
+    const lim = Math.min(n, done+CHUNK);
+    for(; done<lim; done++){
+      const s = simulateGame(cfg, agents, rng, null);
+      if(s.winner===0) agg.winP1++; else if(s.winner===1) agg.winP2++; else agg.draws++;
+      agg.rounds.push(s.rounds); agg.roundCount+=s.rounds;
+      for(const i of [0,1]){
+        agg.folds[i]+=s.folds[i]; agg.gives[i]+=s.gives[i]; agg.gaveLowest[i]+=s.gaveLowest[i];
+        for(const c of s.givenCards[i]) agg.givenDist[i][c]++;
+      }
+      for(const b of s.finalBets) agg.finalBetDist[Math.min(6,b)]++;
+      for(const r of s.raiseSizes) agg.raiseSizes[Math.min(6,r)]++;
+      agg.ties+=s.ties; agg.showdowns+=s.showdowns;
+      agg.rouletteShots+=s.rouletteShots; agg.rouletteHits+=s.rouletteHits;
+      agg.sevenFoldTriggers+=s.sevenFoldTriggers; agg.setsTotal+=s.sets;
+      if(s.winner>=0) agg.winnerLives.push(s.livesLeft[s.winner]);
+    }
+    onProgress(done/n);
+    if(done<n) setTimeout(step,0); else onDone(agg);
+  }
+  step();
+}
+
+/* ---------- 결과 렌더 ---------- */
+let charts={};
+function chart(id, type, labels, datasets, opts){
+  if(charts[id]) charts[id].destroy();
+  Chart.defaults.color="#857a6a";
+  Chart.defaults.borderColor="#2e261f";
+  Chart.defaults.font.family="ui-monospace,'Courier New',monospace";
+  charts[id]=new Chart($("#"+id),{type, data:{labels,datasets},
+    options:Object.assign({responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:datasets.length>1,labels:{boxWidth:10}},title:{display:true,text:opts.title,color:"#cfc6b6",font:{size:12}}},
+      scales:{y:{beginAtZero:true,grid:{color:"#221c16"}},x:{grid:{display:false}}}
+    },opts.extra||{})});
+}
+
+function drawCylinder(avgBullets){
+  const svg = $("#cylinder");
+  const cx=60, cy=60, R=44, r=13;
+  let s = `<circle cx="${cx}" cy="${cy}" r="56" fill="#15110e" stroke="#2e261f"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="8" fill="#0c0a09" stroke="#574e42"/>`;
+  const filled = avgBullets;
+  for(let i=0;i<6;i++){
+    const a = -Math.PI/2 + i*(Math.PI/3);
+    const x = cx + R*Math.cos(a), y = cy + R*Math.sin(a);
+    const frac = Math.max(0, Math.min(1, filled - i));
+    const col = frac>=1 ? "#c0392f" : frac>0 ? "#7a241d" : "#0c0a09";
+    s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" stroke="#574e42" stroke-width="1.5"/>`;
+  }
+  svg.innerHTML = s;
+}
+
+function statCard(label, value, sub, cls){
+  return `<div class="card ${cls||""}"><span>${label}</span><b>${value}</b>${sub?`<small>${sub}</small>`:""}</div>`;
+}
+
+function render(agg, cfg){
+  $("#results").classList.remove("hidden");
+  const n=agg.games, R=agg.roundCount;
+  const avgRounds = R/n;
+  const winP1 = agg.winP1/n*100, winP2 = agg.winP2/n*100, draws=agg.draws/n*100;
+  const foldRate = (agg.folds[0]+agg.folds[1])/R*100;
+  const lowest = [0,1].map(i=>agg.gaveLowest[i]/Math.max(1,agg.gives[i])*100);
+  const ent = [0,1].map(i=>entropy01(agg.givenDist[i].slice(1)));
+  const hit = agg.rouletteHits/Math.max(1,agg.rouletteShots)*100;
+  const betTot = agg.finalBetDist.reduce((s,x)=>s+x,0);
+  const avgBet = agg.finalBetDist.reduce((s,x,i)=>s+x*i,0)/Math.max(1,betTot);
+  const tieRate = agg.ties/R*100;
+  const setsPerGame = agg.setsTotal/n;
+  const avgWinnerLives = agg.winnerLives.reduce((s,x)=>s+x,0)/Math.max(1,agg.winnerLives.length);
+
+  $("#resMeta").textContent = `${n.toLocaleString()}게임 · 총 ${R.toLocaleString()}판`;
+
+  drawCylinder(avgBet);
+  $("#cylNote").innerHTML =
+    `평균 최종 베팅 <b style="color:#c0392f">${avgBet.toFixed(2)}발</b> — 약실 6칸 중 평균적으로 이만큼 장전된 채 방아쇠가 당겨진다.`+
+    `<br>룰렛 평균 명중률 ${hit.toFixed(1)}% · 동점(동시 룰렛) ${tieRate.toFixed(1)}% · '7+폴드' 강제 6발 발동 ${agg.sevenFoldTriggers.toLocaleString()}회`;
+
+  // GDD 목표 대비 색상: 게임 길이 (S1 목표 ~9판, S3 목표 4~5판)
+  const lenTarget = cfg.minBet>=2 ? [4,6] : [8,14];
+  const lenCls = avgRounds>=lenTarget[0]&&avgRounds<=lenTarget[1] ? "ok":"warn";
+
+  $("#statCards").innerHTML =
+    statCard("P1 승률", winP1.toFixed(1)+"%", `P2 ${winP2.toFixed(1)}% · 무승부 ${draws.toFixed(1)}%`, Math.abs(winP1-winP2)>8?"warn":"ok")+
+    statCard("평균 게임 길이", avgRounds.toFixed(1)+"판", `세트 ${setsPerGame.toFixed(1)}회 · GDD 목표 ${cfg.minBet>=2?"4~5":"≈9"}판`, lenCls)+
+    statCard("폴드율 (판당)", foldRate.toFixed(1)+"%", `P1 ${(agg.folds[0]/R*100).toFixed(1)}% · P2 ${(agg.folds[1]/R*100).toFixed(1)}% — §9.4 감시 지표`, foldRate<5?"warn":"ok")+
+    statCard("룰렛 명중률", hit.toFixed(1)+"%", `${agg.rouletteShots.toLocaleString()}발 중 ${agg.rouletteHits.toLocaleString()}명중`)+
+    statCard("P1 최저카드 제공률", lowest[0].toFixed(1)+"%", "§9.4 단조화 지표 — 100%면 완전 수렴", lowest[0]>90?"warn":"ok")+
+    statCard("P2 최저카드 제공률", lowest[1].toFixed(1)+"%", "", lowest[1]>90?"warn":"ok")+
+    statCard("제공 카드 다양성", ent[0].toFixed(2)+" / "+ent[1].toFixed(2), "P1 / P2 · 값 분포 엔트로피(0~1)")+
+    statCard("승자 평균 잔여 목숨", avgWinnerLives.toFixed(2), `만 목숨 ${cfg.lives}개 기준 — 낮을수록 접전`);
+
+  // 차트
+  const maxLen = Math.min(40, Math.max(...agg.rounds));
+  const lenHist = new Array(maxLen+1).fill(0);
+  for(const x of agg.rounds) lenHist[Math.min(maxLen,x)]++;
+  chart("chLen","bar", lenHist.map((_,i)=>i), [{label:"게임 수", data:lenHist, backgroundColor:"#7a241d", borderColor:"#c0392f", borderWidth:1}],
+    {title:"게임 길이 분포 (판 수)"});
+
+  chart("chBet","bar",[1,2,3,4,5,6],[{label:"판 수", data:agg.finalBetDist.slice(1), backgroundColor:["#3d3328","#574e42","#7a5a2a","#a4731f","#a3402f","#c0392f"], borderWidth:0}],
+    {title:"최종 베팅(장전) 분포 — 6발=확정사"});
+
+  chart("chGive","bar",[1,2,3,4,5,6,7],[
+      {label:"P1", data:agg.givenDist[0].slice(1), backgroundColor:"#857a6a"},
+      {label:"P2 보스", data:agg.givenDist[1].slice(1), backgroundColor:"#7a241d"},
+    ],{title:"제공 카드 값 분포 (§9.4 단조화 점검)"});
+
+  chart("chRaise","bar",[1,2,3,4,5,6],[{label:"레이즈 횟수", data:agg.raiseSizes.slice(1), backgroundColor:"#a4731f"}],
+    {title:"레이즈 선언 크기 분포 (§2.3.3)"});
+
+  // 자동 진단
+  const diag=[];
+  const push=(cls,txt)=>diag.push(`<li class="${cls}">${txt}</li>`);
+  if(Math.abs(winP1-winP2)>8) push("bad",`승률 비대칭 ${Math.abs(winP1-winP2).toFixed(1)}%p — 전략/파라미터 우위 존재. 매트릭스로 원인 분리 권장.`);
+  else push("good","승률이 대칭 범위(±8%p) 안 — 선·후공/전략 균형 양호.");
+  if(avgRounds<lenTarget[0]) push("bad",`평균 ${avgRounds.toFixed(1)}판 — GDD 목표(${lenTarget[0]}~${lenTarget[1]}판)보다 짧음. 최소 베팅·블러핑 빈도를 낮추거나 목숨을 늘릴 것.`);
+  else if(avgRounds>lenTarget[1]) push("mid",`평균 ${avgRounds.toFixed(1)}판 — 목표보다 김. 압박(최소 베팅/레이즈 상한)을 올려 단축 가능.`);
+  else push("good",`평균 ${avgRounds.toFixed(1)}판 — GDD 목표 구간(${lenTarget[0]}~${lenTarget[1]}판) 충족.`);
+  if(foldRate<5) push("bad",`폴드율 ${foldRate.toFixed(1)}% — §9.4 '폴드 동기 약함' 재현. 레이즈 상한 확대 또는 보스 블러핑 빈도 상향으로 콜/폴드 분기를 강제할 것.`);
+  else push("good",`폴드율 ${foldRate.toFixed(1)}% — 폴드가 의미 있는 선택지로 작동.`);
+  if(lowest[0]>90&&lowest[1]>90) push("mid","양쪽 모두 최저 카드 수렴 상태 — 전략 매트릭스에서 '최저 우선'의 실제 우위 폭을 확인하고, 저카드 보정 토글로 비교 실험할 것.");
+  if(tieRate>15) push("mid",`동점률 ${tieRate.toFixed(1)}% — 동시 룰렛이 잦음. 연출 빈도는 좋지만 운 비중이 커질 수 있음(§3.2 동점 유발 조정과 연동).`);
+  $("#diag").innerHTML = diag.join("");
+}
+
+/* ---------- 실행 버튼 ---------- */
+const runBtn=$("#runBtn");
+runBtn.addEventListener("click",()=>{
+  const cfg=readCfg(), agents=[readAgent(0),readAgent(1)];
+  const n=Math.max(200,Math.min(50000,+$("#iterations").value||5000));
+  runBtn.disabled=true; $("#progTxt").textContent="실행 중…";
+  runBatchAsync(cfg,agents,n,+$("#seed").value,
+    p=>{$("#progBar").style.width=(p*100).toFixed(1)+"%"; $("#progTxt").textContent=`실행 중 ${(p*100|0)}%`;},
+    agg=>{runBtn.disabled=false; $("#progTxt").textContent="완료"; render(agg,cfg);
+      $("#results").scrollIntoView({behavior:"smooth",block:"start"});});
+});
+
+/* ---------- 전략 매트릭스 ---------- */
+$("#matrixBtn").addEventListener("click",()=>{
+  const cfg=readCfg();
+  const keys=Object.keys(GIVE_STRATEGIES);
+  const N=800;
+  const base0=readAgent(0), base1=readAgent(1);
+  $("#matrixSec").classList.remove("hidden");
+  const tbl=$("#matrixTable");
+  tbl.innerHTML=`<tr><th>P1↓ \\ P2→</th>${keys.map(k=>`<th>${GIVE_STRATEGIES[k]}</th>`).join("")}</tr>`+
+    keys.map(k=>`<tr><th>${GIVE_STRATEGIES[k]}</th>${keys.map(()=>"<td>…</td>").join("")}</tr>`).join("");
+  const cells=[...tbl.querySelectorAll("td")];
+  let idx=0;
+  const jobs=[];
+  for(const r of keys) for(const c of keys) jobs.push([r,c]);
+  $("#matrixBtn").disabled=true;
+  function next(){
+    if(idx>=jobs.length){$("#matrixBtn").disabled=false; $("#progTxt").textContent="매트릭스 완료"; return;}
+    const [r,c]=jobs[idx];
+    const a0=Object.assign({},base0,{give:r}), a1=Object.assign({},base1,{give:c});
+    const agg=runBatch(cfg,[a0,a1],N, 1000+idx);
+    const decided=agg.winP1+agg.winP2;
+    const w=decided?agg.winP1/decided*100:50;
+    const cell=cells[idx];
+    cell.textContent=w.toFixed(1)+"%";
+    if(r===c) cell.classList.add("diag");
+    const d=w-50;
+    cell.style.color = d>5?"#c0392f": d<-5?"#7a9a5a":"#cfc6b6";
+    cell.style.fontWeight = Math.abs(d)>10?"700":"400";
+    $("#progTxt").textContent=`매트릭스 ${idx+1}/${jobs.length}`;
+    idx++; setTimeout(next,0);
+  }
+  next();
+});
+
+/* ---------- 샘플 트레이스 ---------- */
+$("#traceBtn").addEventListener("click",()=>{
+  const cfg=readCfg();
+  const trace=[];
+  const rng=mulberry32((+$("#seed").value||1)+Date.now()%1000);
+  const s=simulateGame(cfg,[readAgent(0),readAgent(1)],rng,trace);
+  $("#traceSec").classList.remove("hidden");
+  $("#trace").textContent =
+    `[설정] 최소베팅 ${cfg.minBet} · 목숨 ${cfg.lives} · 레이즈상한 ${cfg.maxRaise} · 7폴드룰 ${cfg.sevenFold?"ON":"OFF"} · 저카드보정 ${cfg.lowGivePenalty?"ON":"OFF"}\n`+
+    trace.join("\n")+
+    `\n[결과] ${s.winner<0?"무승부(동시 사망)":"P"+(s.winner+1)+" 승리"} · ${s.rounds}판 · 잔여 목숨 P1:${s.livesLeft[0]} / P2:${s.livesLeft[1]}`;
+});
+
+/* 기본 프리셋 = Stage 1 */
+document.querySelector('[data-stage="1"]').classList.add("active");
+</script>
+</body>
+</html>
