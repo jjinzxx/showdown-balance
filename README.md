@@ -5,6 +5,10 @@
 
 <br><br>
 
+[ShowDown 검증 시뮬레이터 바로가기](https://jjinzxx.github.io/showdown-balance/)
+
+<br><br>
+
 ## 파일
 
 ```
