@@ -170,7 +170,7 @@ P1(플레이어 모델)과 P2(보스 '수집가' 모델)를 독립적으로 설�
 
 ## 관련 링크
 
-- [본 개발 리포지토리]("https://github.com/jjinzxx/showdown")
+- [본 개발 리포지토리](https://github.com/jjinzxx/showdown)
 - GDD v1.5 — (팀 내부 문서)
 
 <br><br>
