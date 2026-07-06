@@ -7,95 +7,90 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#0c0a09; --panel:#15110e; --panel2:#1c1713; --line:#2e261f;
-  --ink:#cfc6b6; --dim:#857a6a; --faint:#574e42;
-  --red:#c0392f; --red-dim:#7a241d; --amber:#c9982f; --green:#7a9a5a;
-  --mono:ui-monospace,'Cascadia Mono','Courier New',monospace;
+  --bg:#eef0f3; --panel:#ffffff; --panel2:#f7f8fa; --line:#d8dce2;
+  --ink:#20242c; --dim:#5b6472; --faint:#9099a6;
+  --red:#b3261e; --amber:#8a5a10; --green:#1e6b45;
+  --accent:#1d3a8f; --accent2:#2c4fb0;
+  --mono:ui-monospace,'SFMono-Regular','Cascadia Mono','Consolas',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic',Pretendard,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scrollbar-color:var(--faint) var(--bg)}
 body{
-  background:var(--bg); color:var(--ink); font-family:var(--mono);
-  font-size:13px; line-height:1.6; min-height:100vh; padding:24px 16px 80px;
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:14px; line-height:1.6; min-height:100vh; padding:28px 16px 80px;
 }
-body::after{ /* CRT 스캔라인 */
-  content:""; position:fixed; inset:0; pointer-events:none; z-index:9;
-  background:repeating-linear-gradient(0deg, rgba(0,0,0,.13) 0 1px, transparent 1px 3px);
-  mix-blend-mode:multiply;
-}
-@media (prefers-reduced-motion:no-preference){
-  .blink{animation:blink 1.2s steps(2) infinite}
-  @keyframes blink{50%{opacity:0}}
-}
-.wrap{max-width:1060px;margin:0 auto}
-header{border:1px solid var(--line); background:var(--panel); padding:18px 20px 14px; position:relative; margin-bottom:18px}
-header::before{content:"REC ●"; position:absolute; top:10px; right:14px; color:var(--red); font-size:11px; letter-spacing:.12em}
-h1{font-size:21px; letter-spacing:.34em; font-weight:700; color:var(--ink)}
-h1 .x{color:var(--red)}
-.sub{color:var(--dim); font-size:11.5px; margin-top:4px; letter-spacing:.05em}
-.tape{display:inline-block; border:1px solid var(--faint); color:var(--dim); font-size:10.5px; padding:1px 8px; letter-spacing:.18em; margin-top:10px}
-h2{font-size:12px; letter-spacing:.26em; color:var(--amber); border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:14px; font-weight:700}
-h2 .ref{color:var(--faint); letter-spacing:.06em; font-weight:400; float:right}
-section{border:1px solid var(--line); background:var(--panel); padding:16px 18px; margin-bottom:16px}
-label{display:block; color:var(--dim); font-size:11px; letter-spacing:.08em; margin-bottom:3px}
+.wrap{max-width:1080px;margin:0 auto}
+header{border:1px solid var(--line); border-top:3px solid var(--accent); background:var(--panel); padding:20px 24px; margin-bottom:22px}
+h1{font-size:21px; font-weight:800; color:var(--ink); letter-spacing:-.02em; text-transform:uppercase}
+h1 .x{color:var(--accent)}
+.sub{color:var(--dim); font-size:12.5px; margin-top:7px; border-top:1px solid var(--line); padding-top:7px}
+h2{font-size:13px; font-weight:700; color:var(--ink); letter-spacing:.01em; border-bottom:2px solid var(--ink); padding-bottom:9px; margin-bottom:16px}
+h2 .ref{color:var(--faint); font-size:11.5px; font-weight:400; float:right; border-bottom:none}
+section{border:1px solid var(--line); background:var(--panel); padding:20px 22px; margin-bottom:16px}
+label{display:block; color:var(--dim); font-size:12.5px; margin-bottom:5px; font-weight:600}
 select,input[type=number]{
-  width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--line);
-  font-family:var(--mono); font-size:12.5px; padding:5px 7px; border-radius:0;
+  width:100%; background:var(--panel); color:var(--ink); border:1px solid var(--line);
+  font-family:var(--sans); font-size:13.5px; padding:7px 9px; border-radius:0;
 }
-select:focus,input:focus,button:focus-visible{outline:1px solid var(--amber); outline-offset:1px}
-input[type=range]{width:100%; accent-color:var(--red)}
-.grid{display:grid; gap:12px}
+select:focus,input:focus,button:focus-visible{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+input[type=range]{width:100%; accent-color:var(--accent)}
+.grid{display:grid; gap:14px}
 .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:1fr 1fr}
 @media(max-width:760px){.g3,.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-.field{margin-bottom:10px}
-.val{color:var(--amber); float:right; font-size:11px}
-.presets{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px}
+.field{margin-bottom:12px}
+.val{color:var(--accent); float:right; font-size:12px; font-family:var(--mono); font-weight:600}
+.presets{display:flex; gap:0; flex-wrap:wrap; margin-bottom:16px; border:1px solid var(--line)}
+.presets button{border-radius:0; border:none; border-right:1px solid var(--line)}
+.presets button:last-child{border-right:none}
 button{
-  background:var(--panel2); border:1px solid var(--line); color:var(--ink);
-  font-family:var(--mono); font-size:12px; letter-spacing:.1em; padding:7px 14px; cursor:pointer;
+  background:var(--panel); border:1px solid var(--line); color:var(--ink);
+  font-family:var(--sans); font-size:13px; font-weight:600; padding:8px 16px; border-radius:0; cursor:pointer;
 }
-button:hover{border-color:var(--amber); color:var(--amber)}
-button.primary{background:var(--red-dim); border-color:var(--red); color:#f0e2da; font-weight:700; letter-spacing:.2em; padding:10px 26px}
-button.primary:hover{background:var(--red); color:#fff}
-button.active{border-color:var(--amber); color:var(--amber); background:#221b10}
-button:disabled{opacity:.45; cursor:wait}
-.agents{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+button:hover{border-color:var(--accent); color:var(--accent)}
+button.primary{background:var(--accent); border-color:var(--accent); color:#fff; padding:10px 22px; font-weight:700}
+button.primary:hover{background:var(--accent2); border-color:var(--accent2); color:#fff}
+button.active{border-color:var(--accent); color:#fff; background:var(--accent)}
+button:disabled{opacity:.5; cursor:wait}
+.agents{display:grid; grid-template-columns:1fr 1fr; gap:16px}
 @media(max-width:760px){.agents{grid-template-columns:1fr}}
-.agent{border:1px dashed var(--line); padding:12px 14px}
-.agent h3{font-size:11.5px; letter-spacing:.2em; margin-bottom:10px; color:var(--ink)}
+.agent{border:1px solid var(--line); border-left:3px solid var(--faint); padding:14px 16px; background:var(--panel2)}
+.agent h3{font-size:13px; font-weight:700; margin-bottom:12px; color:var(--ink)}
+.agent.boss{border-left-color:var(--red)}
 .agent.boss h3{color:var(--red)}
-.toggle{display:flex; align-items:center; gap:8px; color:var(--ink); font-size:12px; cursor:pointer; margin-bottom:6px}
-.toggle input{accent-color:var(--red); width:14px; height:14px}
-.exp-detail{padding-left:22px; color:var(--dim); font-size:11px}
-.exp-detail input{width:52px; display:inline-block; padding:2px 5px; margin:0 4px}
+.toggle{display:flex; align-items:center; gap:8px; color:var(--ink); font-size:13px; cursor:pointer; margin-bottom:8px}
+.toggle input{accent-color:var(--accent); width:15px; height:15px}
+.exp-detail{padding-left:23px; color:var(--dim); font-size:12px}
+.exp-detail input{width:56px; display:inline-block; padding:3px 6px; margin:0 4px}
 .runbar{display:flex; align-items:center; gap:16px; flex-wrap:wrap}
-.progress{flex:1; min-width:160px; height:8px; background:var(--bg); border:1px solid var(--line)}
-.progress i{display:block; height:100%; width:0%; background:var(--red); transition:width .1s}
-.cards{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px}
+.progress{flex:1; min-width:160px; height:7px; background:var(--panel2); border:1px solid var(--line); overflow:hidden}
+.progress i{display:block; height:100%; width:0%; background:var(--accent); transition:width .1s}
+.cards{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-bottom:16px; background:var(--line); border:1px solid var(--line)}
 @media(max-width:760px){.cards{grid-template-columns:1fr 1fr}}
-.card{border:1px solid var(--line); background:var(--panel2); padding:10px 12px}
-.card b{display:block; font-size:20px; color:var(--ink); font-weight:700; margin-top:2px}
-.card span{font-size:10.5px; color:var(--dim); letter-spacing:.08em}
+.card{border:none; background:var(--panel2); padding:12px 14px}
+.card b{display:block; font-size:20px; color:var(--ink); font-weight:700; margin-top:3px; font-family:var(--mono)}
+.card span{font-size:10.5px; color:var(--dim); font-weight:700; letter-spacing:.03em; text-transform:uppercase}
 .card.warn b{color:var(--red)}
 .card.ok b{color:var(--green)}
-.card small{display:block; color:var(--faint); font-size:10px; margin-top:2px}
-.charts{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.card small{display:block; color:var(--faint); font-size:10.5px; margin-top:3px}
+.charts{display:grid; grid-template-columns:1fr 1fr; gap:16px}
 @media(max-width:760px){.charts{grid-template-columns:1fr}}
 .chartbox{border:1px solid var(--line); background:var(--panel2); padding:10px; height:230px; position:relative}
-.cyl-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap; border:1px dashed var(--line); padding:12px 14px; margin-bottom:14px}
-.cyl-note{color:var(--dim); font-size:11.5px; max-width:560px}
-table{width:100%; border-collapse:collapse; font-size:12px}
-th,td{border:1px solid var(--line); padding:5px 8px; text-align:center}
-th{color:var(--dim); font-weight:400; letter-spacing:.06em; background:var(--panel2)}
+.cyl-row{display:flex; align-items:center; gap:20px; flex-wrap:wrap; border:1px solid var(--line); padding:14px 16px; margin-bottom:16px; background:var(--panel2)}
+.cyl-note{color:var(--dim); font-size:12.5px; max-width:560px}
+table{width:100%; border-collapse:collapse; font-size:12.5px}
+th,td{border:1px solid var(--line); padding:7px 9px; text-align:center}
+th{color:var(--dim); font-weight:700; background:var(--panel2)}
 td.diag{color:var(--faint)}
-#matrixNote,#diag{color:var(--dim); font-size:11.5px; margin-top:10px}
-#diag li{margin-left:18px; margin-top:4px}
+#matrixNote,#diag,#llmCompareNote{color:var(--dim); font-size:12.5px; margin-top:12px}
+#diag li{margin-left:18px; margin-top:5px}
 #diag .bad{color:var(--red)} #diag .good{color:var(--green)} #diag .mid{color:var(--amber)}
+.compare-table td.notable{color:var(--accent); font-weight:700}
 pre#trace{
-  background:var(--bg); border:1px solid var(--line); padding:12px; font-size:11.5px;
+  background:var(--panel2); border:1px solid var(--line); padding:14px; font-size:12px; font-family:var(--mono);
   color:var(--dim); max-height:260px; overflow:auto; white-space:pre-wrap;
 }
-footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px; letter-spacing:.1em}
+footer{color:var(--faint); font-size:11.5px; text-align:center; margin-top:28px; border-top:1px solid var(--line); padding-top:14px}
 .hidden{display:none}
 </style>
 </head>
@@ -104,13 +99,12 @@ footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px;
 
 <header>
   <h1>SHOW<span class="x">DOWN</span> 밸런스 검증</h1>
-  <div class="sub">수치 밸런싱 몬테카를로 시뮬레이터 · GDD v1.5 §2.3 / §3.3 / §9.4 연동 · 시드 고정 재현 가능</div>
-  <div class="tape">TAPE 01 — "승률, 평균베팅 등 수치화 된 데이터 검증"</div>
+  <div class="sub">수치 밸런싱 몬테카를로 시뮬레이터 · GDD v2.5 기준 · LLM 보조판단 / LLM 음성 파이프라인 연동 · 시드 고정 재현 가능</div>
 </header>
 
 <!-- ============ 설정 ============ -->
 <section>
-  <h2>① 룰 설정 <span class="ref">GDD §2.3.2 / §3.3</span></h2>
+  <h2>① 룰 설정</h2>
   <div class="presets">
     <button data-stage="1">STAGE 1 — 1발 / 3목숨</button>
     <button data-stage="2">STAGE 2 — 1발 / 3목숨 · 블러핑↑</button>
@@ -125,8 +119,8 @@ footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px;
   </div>
   <div class="grid g2" style="margin-top:6px">
     <div>
-      <label class="toggle"><input type="checkbox" id="sevenFold" checked> '7'을 들고 폴드하면 6발 강제 (§2.4)</label>
-      <label class="toggle"><input type="checkbox" id="lowGivePenalty"> [실험 §9.4] 저카드 보정 — 승자가 준 카드가 낮으면 패자 장전 감소</label>
+      <label class="toggle"><input type="checkbox" id="sevenFold" checked> '7'을 들고 폴드하면 6발 강제</label>
+      <label class="toggle"><input type="checkbox" id="lowGivePenalty"> [실험] 저카드 보정 — 승자가 준 카드가 낮으면 패자 장전 감소</label>
       <div class="exp-detail" id="lowGiveDetail">
         준 카드 ≤ <input type="number" id="lowGiveThreshold" min="1" max="6" value="2">이면
         장전 −<input type="number" id="lowGiveReduce" min="1" max="5" value="1">발
@@ -139,13 +133,13 @@ footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px;
 
 <!-- ============ 에이전트 ============ -->
 <section>
-  <h2>② AI 에이전트 <span class="ref">GDD §2.5 / §5.1</span></h2>
+  <h2>② AI 에이전트</h2>
   <div class="agents">
     <div class="agent" id="agent0">
       <h3>P1 — 플레이어 모델</h3>
       <div class="field"><label>카드 제공 전략</label>
         <select class="a-give">
-          <option value="lowest">최저 우선 (§9.4 수렴 전략)</option>
+          <option value="lowest">최저 우선 (수렴 전략)</option>
           <option value="highest">최고 우선</option>
           <option value="random">무작위</option>
           <option value="weighted">저카드 가중 (편향 조절)</option>
@@ -158,10 +152,10 @@ footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px;
       <div class="field"><label>폴드 성향 <span class="val">0.00</span></label><input type="range" class="a-timid" min="-2" max="4" step="0.5" value="0"></div>
     </div>
     <div class="agent boss" id="agent1">
-      <h3>P2 — 보스 '수집가' 모델</h3>
+      <h3>P2 — 보스 '라이벌' 모델</h3>
       <div class="field"><label>카드 제공 전략</label>
         <select class="a-give">
-          <option value="lowest">최저 우선 (§9.4 수렴 전략)</option>
+          <option value="lowest">최저 우선 (수렴 전략)</option>
           <option value="highest">최고 우선</option>
           <option value="random">무작위</option>
           <option value="weighted">저카드 가중 (편향 조절)</option>
@@ -176,20 +170,38 @@ footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px;
   </div>
 </section>
 
+<!-- ============ LLM Voice/Chat 개입 ============ -->
+<section>
+  <h2>③ LLM Voice/Chat 개입</h2>
+  <p style="color:var(--dim);font-size:12.5px;margin-bottom:14px">
+    P2(라이벌)의 기본 행동은 코드 성향 파라미터로 결정된다. 아래를 켜면 플레이어의 채팅·음성 도발이 STT→LLM→TTS 파이프라인을 거쳐 라이벌 판단에 제한된 영향을 더하는 상황을 근사 모델링한다. 파이프라인이 실패·지연하면 코드 기본 판단으로 자동 폴백하며, 레이즈는 항상 상한 6발을 넘지 않는다.
+  </p>
+  <label class="toggle"><input type="checkbox" id="llmEnabled"> P2 LLM 보조 판단 사용</label>
+  <div class="grid g3">
+    <div class="field"><label>평균 도발 강도 (provocation) <span class="val">0.50</span></label><input type="range" id="llmProvocation" min="0" max="1" step="0.05" value="0.5"></div>
+    <div class="field"><label>파이프라인 성공률 (폴백 없이 반영) <span class="val">0.85</span></label><input type="range" id="llmSuccessRate" min="0" max="1" step="0.05" value="0.85"></div>
+    <div class="field">
+      <label class="toggle" style="margin-top:22px"><input type="checkbox" id="llmRampDamage" checked> 누적 자존심 타격 반영 (ai_mental_damage — 라운드가 지날수록 반영치 증가)</label>
+    </div>
+  </div>
+</section>
+
 <!-- ============ 실행 ============ -->
 <section>
+  <h2>④ 실행</h2>
   <div class="runbar">
     <button class="primary" id="runBtn">▶ 시뮬레이션 실행</button>
-    <button id="matrixBtn">전략 매트릭스 5×5 (§9.4 검증)</button>
+    <button id="matrixBtn">전략 매트릭스 5×5 (수렴 가설 검증)</button>
     <button id="traceBtn">샘플 게임 1회 추적</button>
+    <button id="llmCompareBtn">LLM 영향도 비교 (Baseline vs ON)</button>
     <div class="progress"><i id="progBar"></i></div>
-    <span id="progTxt" class="sub">대기 중<span class="blink">_</span></span>
+    <span id="progTxt" class="sub">대기 중</span>
   </div>
 </section>
 
 <!-- ============ 결과 ============ -->
 <section id="results" class="hidden">
-  <h2>③ 집계 결과 <span class="ref" id="resMeta"></span></h2>
+  <h2>⑤ 집계 결과 <span class="ref" id="resMeta"></span></h2>
 
   <div class="cyl-row">
     <svg id="cylinder" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="평균 장전 시각화"></svg>
@@ -210,31 +222,40 @@ footer{color:var(--faint); font-size:10.5px; text-align:center; margin-top:26px;
 
 <!-- ============ 매트릭스 ============ -->
 <section id="matrixSec" class="hidden">
-  <h2>④ 카드 제공 전략 매트릭스 <span class="ref">P1 승률 % (행=P1, 열=P2) · 무승부 제외</span></h2>
+  <h2>⑥ 카드 제공 전략 매트릭스 <span class="ref">P1 승률 % (행=P1, 열=P2) · 무승부 제외</span></h2>
   <div style="overflow-x:auto"><table id="matrixTable"></table></div>
-  <p id="matrixNote">§9.4 가설 검증: '최저 우선' 행이 전 열에서 50%를 크게 웃돌면 카드 선택이 단조 수렴한다는 뜻.
-  저카드 보정(①의 실험 토글)을 켜고 다시 돌려 우위 폭이 줄어드는지 비교할 것.</p>
+  <p id="matrixNote">단조화 가설 검증: '최저 우선' 행이 전 열에서 50%를 크게 웃돌면 카드 선택이 단조 수렴한다는 뜻.
+  저카드 보정(①의 실험 토글)을 켜고 다시 돌려 우위 폭이 줄어드는지 비교할 것. ③의 LLM 설정도 그대로 반영된다.</p>
 </section>
 
 <!-- ============ 트레이스 ============ -->
 <section id="traceSec" class="hidden">
-  <h2>⑤ 샘플 게임 추적 로그 <span class="ref">규칙 동작 검수용</span></h2>
+  <h2>⑦ 샘플 게임 추적 로그 <span class="ref">규칙 동작 검수용 · LLM개입 표시 포함</span></h2>
   <pre id="trace"></pre>
 </section>
 
-<footer>SHOWDOWN BALANCE TERMINAL · TEAM 옵티머스프라임 · 결과는 AI 모델 가정에 의존하므로 Week 2 실측과 교차 검증할 것</footer>
+<!-- ============ LLM 영향도 비교 ============ -->
+<section id="llmCompareSec" class="hidden">
+  <h2>⑧ LLM 영향도 비교 <span class="ref">Baseline(코드만) vs LLM ON · 동일 시드</span></h2>
+  <div style="overflow-x:auto"><table id="llmCompareTable" class="compare-table"></table></div>
+  <p id="llmCompareNote"></p>
+</section>
+
+<footer>SHOWDOWN BALANCE TERMINAL · TEAM KLPI · GDD v2.5 기준 · 결과는 AI 모델 가정에 의존하므로 Week 2 실측과 교차 검증할 것 · LLM 보조판단은 코드 성향 파라미터를 안전 범위 내에서 조정하는 근사 모델입니다</footer>
 </div>
 
 <script>
 "use strict";
 /* ====== 시뮬레이션 코어 (노드 검증 완료본 주입 지점) ====== */
 /* ============================================================
-   SHOWDOWN 밸런스 시뮬레이터 코어 (GDD v1.5 §2 기준)
+   SHOWDOWN 밸런스 시뮬레이터 코어 (GDD v2.5 기준)
    - 덱: 1~7 × 2 = 14장, 손패 5장, 미사용 4장
    - 각자 손패에서 한 장을 골라 "상대" 머리 위에 부착
    - 베팅: 최소 베팅으로 시작, 가변 레이즈(최종 베팅 1~6발 지정)
    - 패자(또는 폴드한 쪽)가 자기 건 총알 수만큼 장전 후 룰렛
    - 동점: 양쪽 동시 룰렛 / 7+폴드: 무조건 6발
+   - P2(라이벌) LLM 보조 판단은 코드 성향 파라미터를
+     허용 범위 내에서 조정하는 근사 레이어로만 반영 (숨은 정보·승패 규칙 불변)
    ============================================================ */
 
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
@@ -256,6 +277,25 @@ function defaultAgent(){
     timidity: 0.0,
     noise: 0.05,
   };
+}
+
+function defaultLlmCfg(){
+  return { enabled:false, provocation:0.5, successRate:0.85, rampDamage:true };
+}
+
+/* ---------- LLM 보조 판단 근사 모델 ----------
+   파이프라인 성공률 판정 → 실패 시 즉시 폴백(코드 기본 판단만 사용).
+   성공 시 도발 강도 + 누적 자존심 타격(ai_mental_damage)을 합성해 bias(0~1)를 만들고,
+   공격성/블러프율을 올리고 폴드 성향을 낮추는 방향으로만 조정한다(허용 범위 내). */
+function llmAdjust(baseAgent, llmCfg, mentalDamage, rng){
+  if(rng() >= llmCfg.successRate) return {agent:baseAgent, triggered:false, bias:0};
+  const bias = Math.min(1, llmCfg.provocation*0.6 + mentalDamage*0.4);
+  const agent = Object.assign({}, baseAgent, {
+    aggression: Math.min(1, baseAgent.aggression + bias*0.35),
+    bluffRate: Math.min(0.6, baseAgent.bluffRate + bias*0.25),
+    timidity: baseAgent.timidity - bias*1.0,
+  });
+  return {agent, triggered:true, bias};
 }
 
 /* ---------- 카드 제공 ---------- */
@@ -349,15 +389,18 @@ function roulette(bullets, rng){
 }
 
 /* ---------- 한 게임 ---------- */
-function simulateGame(cfg, agents, rng, trace){
+function simulateGame(cfg, agents, rng, trace, llmCfg){
+  llmCfg = llmCfg || defaultLlmCfg();
   const lives = [cfg.lives, cfg.lives];
   const stats = {
     rounds:0, folds:[0,0], showdowns:0, ties:0,
     givenCards:[[],[]], gaveLowest:[0,0], gives:[0,0],
     finalBets:[], rouletteShots:0, rouletteHits:0,
     sevenFoldTriggers:0, sets:0, raiseSizes:[],
+    llmTriggers:0, llmRounds:0, llmBiasSum:0,
   };
   let first = 0;
+  let mentalDamage = 0; // ai_mental_damage 누적치, 게임 전체에 걸쳐 유지
 
   while(lives[0]>0 && lives[1]>0 && stats.rounds < 200){
     const deck=[];
@@ -372,6 +415,7 @@ function simulateGame(cfg, agents, rng, trace){
 
     while(players[0].hand.length>0 && lives[0]>0 && lives[1]>0 && stats.rounds<200){
       stats.rounds++;
+      let roundLlmTriggered = false;
       const lo0 = Math.min(...players[0].hand);
       const lo1 = Math.min(...players[1].hand);
       const give0 = pickGive(agents[0], players[0].hand, rng);
@@ -389,7 +433,19 @@ function simulateGame(cfg, agents, rng, trace){
       while(true){
         const me=actor, opp=1-actor;
         const est = estimate(players[me], heads[opp]);
-        const d = decide(agents[me], est, {
+        let decAgent = agents[me];
+        if(me===1 && llmCfg.enabled){
+          stats.llmRounds++;
+          const adj = llmAdjust(agents[1], llmCfg, mentalDamage, rng);
+          if(adj.triggered){
+            decAgent = adj.agent;
+            roundLlmTriggered = true;
+            stats.llmTriggers++;
+            stats.llmBiasSum += adj.bias;
+            if(llmCfg.rampDamage) mentalDamage = Math.min(1, mentalDamage + adj.bias*0.05);
+          }
+        }
+        const d = decide(decAgent, est, {
           currentBet, myCommitted:committed[me], maxRaise:cfg.maxRaise,
           raisesLeft, lastRaiser, meIndex:me,
         }, cfg, rng);
@@ -404,7 +460,7 @@ function simulateGame(cfg, agents, rng, trace){
         actor=opp;
       }
 
-      if(trace) trace.push(`─ R${stats.rounds} | P1머리:${heads[0]} P2머리:${heads[1]} | P1이 준 카드:${give0} P2가 준 카드:${give1} | 최종베팅 ${currentBet}발${folder>=0?` | P${folder+1} 폴드`:""}`);
+      if(trace) trace.push(`─ R${stats.rounds} | P1머리:${heads[0]} P2머리:${heads[1]} | P1이 준 카드:${give0} P2가 준 카드:${give1} | 최종베팅 ${currentBet}발${folder>=0?` | P${folder+1} 폴드`:""}${roundLlmTriggered?" | LLM개입":""}`);
       const fire=(pi,bullets,reason)=>{
         stats.rouletteShots++;
         const hitNow = roulette(bullets,rng);
@@ -448,7 +504,7 @@ function simulateGame(cfg, agents, rng, trace){
 }
 
 /* ---------- 일괄 실행 ---------- */
-function runBatch(cfg, agents, n, seed){
+function runBatch(cfg, agents, n, seed, llmCfg){
   const rng = mulberry32(seed||12345);
   const agg = {
     games:n, winP1:0, winP2:0, draws:0,
@@ -458,10 +514,10 @@ function runBatch(cfg, agents, n, seed){
     finalBetDist:new Array(7).fill(0), ties:0, showdowns:0,
     rouletteShots:0, rouletteHits:0, sevenFoldTriggers:0,
     raiseSizes:new Array(7).fill(0), setsTotal:0,
-    winnerLives:[],
+    winnerLives:[], llmTriggers:0, llmRounds:0, llmBiasSum:0,
   };
   for(let g=0; g<n; g++){
-    const s = simulateGame(cfg, agents, rng, null);
+    const s = simulateGame(cfg, agents, rng, null, llmCfg);
     if(s.winner===0) agg.winP1++; else if(s.winner===1) agg.winP2++; else agg.draws++;
     agg.rounds.push(s.rounds);
     agg.roundCount+=s.rounds;
@@ -477,6 +533,7 @@ function runBatch(cfg, agents, n, seed){
     agg.rouletteShots+=s.rouletteShots; agg.rouletteHits+=s.rouletteHits;
     agg.sevenFoldTriggers+=s.sevenFoldTriggers;
     agg.setsTotal+=s.sets;
+    agg.llmTriggers+=s.llmTriggers; agg.llmRounds+=s.llmRounds; agg.llmBiasSum+=s.llmBiasSum;
     if(s.winner>=0) agg.winnerLives.push(s.livesLeft[s.winner]);
   }
   return agg;
@@ -541,9 +598,17 @@ function readAgent(i){
   a.timidity = +el.querySelector(".a-timid").value;
   return a;
 }
+function readLlmCfg(){
+  return {
+    enabled: $("#llmEnabled").checked,
+    provocation: +$("#llmProvocation").value,
+    successRate: +$("#llmSuccessRate").value,
+    rampDamage: $("#llmRampDamage").checked,
+  };
+}
 
 /* ---------- 청크 비동기 실행 ---------- */
-function runBatchAsync(cfg, agents, n, seed, onProgress, onDone){
+function runBatchAsync(cfg, agents, n, seed, onProgress, onDone, llmCfg){
   const rng = mulberry32(seed||12345);
   const agg = {
     games:n, winP1:0, winP2:0, draws:0, rounds:[], roundCount:0,
@@ -552,13 +617,14 @@ function runBatchAsync(cfg, agents, n, seed, onProgress, onDone){
     finalBetDist:new Array(7).fill(0), ties:0, showdowns:0,
     rouletteShots:0, rouletteHits:0, sevenFoldTriggers:0,
     raiseSizes:new Array(7).fill(0), setsTotal:0, winnerLives:[],
+    llmTriggers:0, llmRounds:0, llmBiasSum:0,
   };
   let done=0;
   const CHUNK=400;
   function step(){
     const lim = Math.min(n, done+CHUNK);
     for(; done<lim; done++){
-      const s = simulateGame(cfg, agents, rng, null);
+      const s = simulateGame(cfg, agents, rng, null, llmCfg);
       if(s.winner===0) agg.winP1++; else if(s.winner===1) agg.winP2++; else agg.draws++;
       agg.rounds.push(s.rounds); agg.roundCount+=s.rounds;
       for(const i of [0,1]){
@@ -570,6 +636,7 @@ function runBatchAsync(cfg, agents, n, seed, onProgress, onDone){
       agg.ties+=s.ties; agg.showdowns+=s.showdowns;
       agg.rouletteShots+=s.rouletteShots; agg.rouletteHits+=s.rouletteHits;
       agg.sevenFoldTriggers+=s.sevenFoldTriggers; agg.setsTotal+=s.sets;
+      agg.llmTriggers+=s.llmTriggers; agg.llmRounds+=s.llmRounds; agg.llmBiasSum+=s.llmBiasSum;
       if(s.winner>=0) agg.winnerLives.push(s.livesLeft[s.winner]);
     }
     onProgress(done/n);
@@ -582,28 +649,28 @@ function runBatchAsync(cfg, agents, n, seed, onProgress, onDone){
 let charts={};
 function chart(id, type, labels, datasets, opts){
   if(charts[id]) charts[id].destroy();
-  Chart.defaults.color="#857a6a";
-  Chart.defaults.borderColor="#2e261f";
-  Chart.defaults.font.family="ui-monospace,'Courier New',monospace";
+  Chart.defaults.color="#667085";
+  Chart.defaults.borderColor="#e4e7ec";
+  Chart.defaults.font.family="-apple-system,'Segoe UI','Malgun Gothic',sans-serif";
   charts[id]=new Chart($("#"+id),{type, data:{labels,datasets},
     options:Object.assign({responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:datasets.length>1,labels:{boxWidth:10}},title:{display:true,text:opts.title,color:"#cfc6b6",font:{size:12}}},
-      scales:{y:{beginAtZero:true,grid:{color:"#221c16"}},x:{grid:{display:false}}}
+      plugins:{legend:{display:datasets.length>1,labels:{boxWidth:10}},title:{display:true,text:opts.title,color:"#1f2430",font:{size:12,weight:"600"}}},
+      scales:{y:{beginAtZero:true,grid:{color:"#eef0f3"}},x:{grid:{display:false}}}
     },opts.extra||{})});
 }
 
 function drawCylinder(avgBullets){
   const svg = $("#cylinder");
   const cx=60, cy=60, R=44, r=13;
-  let s = `<circle cx="${cx}" cy="${cy}" r="56" fill="#15110e" stroke="#2e261f"/>`;
-  s += `<circle cx="${cx}" cy="${cy}" r="8" fill="#0c0a09" stroke="#574e42"/>`;
+  let s = `<circle cx="${cx}" cy="${cy}" r="56" fill="#f8f9fb" stroke="#e4e7ec"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="8" fill="#eef0f3" stroke="#98a2b3"/>`;
   const filled = avgBullets;
   for(let i=0;i<6;i++){
     const a = -Math.PI/2 + i*(Math.PI/3);
     const x = cx + R*Math.cos(a), y = cy + R*Math.sin(a);
     const frac = Math.max(0, Math.min(1, filled - i));
-    const col = frac>=1 ? "#c0392f" : frac>0 ? "#7a241d" : "#0c0a09";
-    s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" stroke="#574e42" stroke-width="1.5"/>`;
+    const col = frac>=1 ? "#d92d20" : frac>0 ? "#f6b3ac" : "#eef0f3";
+    s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" stroke="#98a2b3" stroke-width="1.5"/>`;
   }
   svg.innerHTML = s;
 }
@@ -612,7 +679,7 @@ function statCard(label, value, sub, cls){
   return `<div class="card ${cls||""}"><span>${label}</span><b>${value}</b>${sub?`<small>${sub}</small>`:""}</div>`;
 }
 
-function render(agg, cfg){
+function render(agg, cfg, llmCfg){
   $("#results").classList.remove("hidden");
   const n=agg.games, R=agg.roundCount;
   const avgRounds = R/n;
@@ -631,7 +698,7 @@ function render(agg, cfg){
 
   drawCylinder(avgBet);
   $("#cylNote").innerHTML =
-    `평균 최종 베팅 <b style="color:#c0392f">${avgBet.toFixed(2)}발</b> — 약실 6칸 중 평균적으로 이만큼 장전된 채 방아쇠가 당겨진다.`+
+    `평균 최종 베팅 <b style="color:#d92d20">${avgBet.toFixed(2)}발</b> — 약실 6칸 중 평균적으로 이만큼 장전된 채 방아쇠가 당겨진다.`+
     `<br>룰렛 평균 명중률 ${hit.toFixed(1)}% · 동점(동시 룰렛) ${tieRate.toFixed(1)}% · '7+폴드' 강제 6발 발동 ${agg.sevenFoldTriggers.toLocaleString()}회`;
 
   // GDD 목표 대비 색상: 게임 길이 (S1 목표 ~9판, S3 목표 4~5판)
@@ -641,30 +708,31 @@ function render(agg, cfg){
   $("#statCards").innerHTML =
     statCard("P1 승률", winP1.toFixed(1)+"%", `P2 ${winP2.toFixed(1)}% · 무승부 ${draws.toFixed(1)}%`, Math.abs(winP1-winP2)>8?"warn":"ok")+
     statCard("평균 게임 길이", avgRounds.toFixed(1)+"판", `세트 ${setsPerGame.toFixed(1)}회 · GDD 목표 ${cfg.minBet>=2?"4~5":"≈9"}판`, lenCls)+
-    statCard("폴드율 (판당)", foldRate.toFixed(1)+"%", `P1 ${(agg.folds[0]/R*100).toFixed(1)}% · P2 ${(agg.folds[1]/R*100).toFixed(1)}% — §9.4 감시 지표`, foldRate<5?"warn":"ok")+
+    statCard("폴드율 (판당)", foldRate.toFixed(1)+"%", `P1 ${(agg.folds[0]/R*100).toFixed(1)}% · P2 ${(agg.folds[1]/R*100).toFixed(1)}% — 감시 지표`, foldRate<5?"warn":"ok")+
     statCard("룰렛 명중률", hit.toFixed(1)+"%", `${agg.rouletteShots.toLocaleString()}발 중 ${agg.rouletteHits.toLocaleString()}명중`)+
-    statCard("P1 최저카드 제공률", lowest[0].toFixed(1)+"%", "§9.4 단조화 지표 — 100%면 완전 수렴", lowest[0]>90?"warn":"ok")+
+    statCard("P1 최저카드 제공률", lowest[0].toFixed(1)+"%", "단조화 지표 — 100%면 완전 수렴", lowest[0]>90?"warn":"ok")+
     statCard("P2 최저카드 제공률", lowest[1].toFixed(1)+"%", "", lowest[1]>90?"warn":"ok")+
     statCard("제공 카드 다양성", ent[0].toFixed(2)+" / "+ent[1].toFixed(2), "P1 / P2 · 값 분포 엔트로피(0~1)")+
-    statCard("승자 평균 잔여 목숨", avgWinnerLives.toFixed(2), `만 목숨 ${cfg.lives}개 기준 — 낮을수록 접전`);
+    statCard("승자 평균 잔여 목숨", avgWinnerLives.toFixed(2), `만 목숨 ${cfg.lives}개 기준 — 낮을수록 접전`)+
+    (llmCfg && llmCfg.enabled ? statCard("LLM 개입률 (P2)", (agg.llmTriggers/Math.max(1,agg.llmRounds)*100).toFixed(1)+"%", `평균 편향치 ${(agg.llmTriggers?agg.llmBiasSum/agg.llmTriggers:0).toFixed(2)} · 파이프라인 성공률 설정 ${(llmCfg.successRate*100).toFixed(0)}%`) : "");
 
   // 차트
   const maxLen = Math.min(40, Math.max(...agg.rounds));
   const lenHist = new Array(maxLen+1).fill(0);
   for(const x of agg.rounds) lenHist[Math.min(maxLen,x)]++;
-  chart("chLen","bar", lenHist.map((_,i)=>i), [{label:"게임 수", data:lenHist, backgroundColor:"#7a241d", borderColor:"#c0392f", borderWidth:1}],
+  chart("chLen","bar", lenHist.map((_,i)=>i), [{label:"게임 수", data:lenHist, backgroundColor:"#c7d7fb", borderColor:"#3b6fe0", borderWidth:1}],
     {title:"게임 길이 분포 (판 수)"});
 
-  chart("chBet","bar",[1,2,3,4,5,6],[{label:"판 수", data:agg.finalBetDist.slice(1), backgroundColor:["#3d3328","#574e42","#7a5a2a","#a4731f","#a3402f","#c0392f"], borderWidth:0}],
+  chart("chBet","bar",[1,2,3,4,5,6],[{label:"판 수", data:agg.finalBetDist.slice(1), backgroundColor:["#dbeafe","#bfdbfe","#93c5fd","#fbbf24","#f97316","#d92d20"], borderWidth:0}],
     {title:"최종 베팅(장전) 분포 — 6발=확정사"});
 
   chart("chGive","bar",[1,2,3,4,5,6,7],[
-      {label:"P1", data:agg.givenDist[0].slice(1), backgroundColor:"#857a6a"},
-      {label:"P2 보스", data:agg.givenDist[1].slice(1), backgroundColor:"#7a241d"},
-    ],{title:"제공 카드 값 분포 (§9.4 단조화 점검)"});
+      {label:"P1", data:agg.givenDist[0].slice(1), backgroundColor:"#94a3b8"},
+      {label:"P2 라이벌", data:agg.givenDist[1].slice(1), backgroundColor:"#d92d20"},
+    ],{title:"제공 카드 값 분포 (단조화 점검)"});
 
-  chart("chRaise","bar",[1,2,3,4,5,6],[{label:"레이즈 횟수", data:agg.raiseSizes.slice(1), backgroundColor:"#a4731f"}],
-    {title:"레이즈 선언 크기 분포 (§2.3.3)"});
+  chart("chRaise","bar",[1,2,3,4,5,6],[{label:"레이즈 횟수", data:agg.raiseSizes.slice(1), backgroundColor:"#8a5a10"}],
+    {title:"레이즈 선언 크기 분포"});
 
   // 자동 진단
   const diag=[];
@@ -674,10 +742,14 @@ function render(agg, cfg){
   if(avgRounds<lenTarget[0]) push("bad",`평균 ${avgRounds.toFixed(1)}판 — GDD 목표(${lenTarget[0]}~${lenTarget[1]}판)보다 짧음. 최소 베팅·블러핑 빈도를 낮추거나 목숨을 늘릴 것.`);
   else if(avgRounds>lenTarget[1]) push("mid",`평균 ${avgRounds.toFixed(1)}판 — 목표보다 김. 압박(최소 베팅/레이즈 상한)을 올려 단축 가능.`);
   else push("good",`평균 ${avgRounds.toFixed(1)}판 — GDD 목표 구간(${lenTarget[0]}~${lenTarget[1]}판) 충족.`);
-  if(foldRate<5) push("bad",`폴드율 ${foldRate.toFixed(1)}% — §9.4 '폴드 동기 약함' 재현. 레이즈 상한 확대 또는 보스 블러핑 빈도 상향으로 콜/폴드 분기를 강제할 것.`);
+  if(foldRate<5) push("bad",`폴드율 ${foldRate.toFixed(1)}% — '폴드 동기 약함' 재현. 레이즈 상한 확대 또는 보스 블러핑 빈도 상향으로 콜/폴드 분기를 강제할 것.`);
   else push("good",`폴드율 ${foldRate.toFixed(1)}% — 폴드가 의미 있는 선택지로 작동.`);
   if(lowest[0]>90&&lowest[1]>90) push("mid","양쪽 모두 최저 카드 수렴 상태 — 전략 매트릭스에서 '최저 우선'의 실제 우위 폭을 확인하고, 저카드 보정 토글로 비교 실험할 것.");
-  if(tieRate>15) push("mid",`동점률 ${tieRate.toFixed(1)}% — 동시 룰렛이 잦음. 연출 빈도는 좋지만 운 비중이 커질 수 있음(§3.2 동점 유발 조정과 연동).`);
+  if(tieRate>15) push("mid",`동점률 ${tieRate.toFixed(1)}% — 동시 룰렛이 잦음. 연출 빈도는 좋지만 운 비중이 커질 수 있음(동점 유발 조정과 연동).`);
+  if(llmCfg && llmCfg.enabled){
+    const rate = agg.llmRounds ? agg.llmTriggers/agg.llmRounds*100 : 0;
+    push("mid", `LLM 보조판단 ON — P2 개입률 ${rate.toFixed(1)}% (평균 편향 ${(agg.llmTriggers?agg.llmBiasSum/agg.llmTriggers:0).toFixed(2)}). Baseline 대비 변화 폭은 ⑧ LLM 영향도 비교에서 확인할 것.`);
+  }
   $("#diag").innerHTML = diag.join("");
 }
 
@@ -685,17 +757,20 @@ function render(agg, cfg){
 const runBtn=$("#runBtn");
 runBtn.addEventListener("click",()=>{
   const cfg=readCfg(), agents=[readAgent(0),readAgent(1)];
+  const llmCfg = readLlmCfg();
   const n=Math.max(200,Math.min(50000,+$("#iterations").value||5000));
   runBtn.disabled=true; $("#progTxt").textContent="실행 중…";
   runBatchAsync(cfg,agents,n,+$("#seed").value,
     p=>{$("#progBar").style.width=(p*100).toFixed(1)+"%"; $("#progTxt").textContent=`실행 중 ${(p*100|0)}%`;},
-    agg=>{runBtn.disabled=false; $("#progTxt").textContent="완료"; render(agg,cfg);
-      $("#results").scrollIntoView({behavior:"smooth",block:"start"});});
+    agg=>{runBtn.disabled=false; $("#progTxt").textContent="완료"; render(agg,cfg,llmCfg);
+      $("#results").scrollIntoView({behavior:"smooth",block:"start"});},
+    llmCfg);
 });
 
 /* ---------- 전략 매트릭스 ---------- */
 $("#matrixBtn").addEventListener("click",()=>{
   const cfg=readCfg();
+  const llmCfg = readLlmCfg();
   const keys=Object.keys(GIVE_STRATEGIES);
   const N=800;
   const base0=readAgent(0), base1=readAgent(1);
@@ -712,14 +787,14 @@ $("#matrixBtn").addEventListener("click",()=>{
     if(idx>=jobs.length){$("#matrixBtn").disabled=false; $("#progTxt").textContent="매트릭스 완료"; return;}
     const [r,c]=jobs[idx];
     const a0=Object.assign({},base0,{give:r}), a1=Object.assign({},base1,{give:c});
-    const agg=runBatch(cfg,[a0,a1],N, 1000+idx);
+    const agg=runBatch(cfg,[a0,a1],N, 1000+idx, llmCfg);
     const decided=agg.winP1+agg.winP2;
     const w=decided?agg.winP1/decided*100:50;
     const cell=cells[idx];
     cell.textContent=w.toFixed(1)+"%";
     if(r===c) cell.classList.add("diag");
     const d=w-50;
-    cell.style.color = d>5?"#c0392f": d<-5?"#7a9a5a":"#cfc6b6";
+    cell.style.color = d>5?"#d92d20": d<-5?"#12805c":"#1f2430";
     cell.style.fontWeight = Math.abs(d)>10?"700":"400";
     $("#progTxt").textContent=`매트릭스 ${idx+1}/${jobs.length}`;
     idx++; setTimeout(next,0);
@@ -730,14 +805,71 @@ $("#matrixBtn").addEventListener("click",()=>{
 /* ---------- 샘플 트레이스 ---------- */
 $("#traceBtn").addEventListener("click",()=>{
   const cfg=readCfg();
+  const llmCfg = readLlmCfg();
   const trace=[];
   const rng=mulberry32((+$("#seed").value||1)+Date.now()%1000);
-  const s=simulateGame(cfg,[readAgent(0),readAgent(1)],rng,trace);
+  const s=simulateGame(cfg,[readAgent(0),readAgent(1)],rng,trace,llmCfg);
   $("#traceSec").classList.remove("hidden");
   $("#trace").textContent =
-    `[설정] 최소베팅 ${cfg.minBet} · 목숨 ${cfg.lives} · 레이즈상한 ${cfg.maxRaise} · 7폴드룰 ${cfg.sevenFold?"ON":"OFF"} · 저카드보정 ${cfg.lowGivePenalty?"ON":"OFF"}\n`+
+    `[설정] 최소베팅 ${cfg.minBet} · 목숨 ${cfg.lives} · 레이즈상한 ${cfg.maxRaise} · 7폴드룰 ${cfg.sevenFold?"ON":"OFF"} · 저카드보정 ${cfg.lowGivePenalty?"ON":"OFF"} · LLM보조(P2) ${llmCfg.enabled?"ON":"OFF"}\n`+
     trace.join("\n")+
     `\n[결과] ${s.winner<0?"무승부(동시 사망)":"P"+(s.winner+1)+" 승리"} · ${s.rounds}판 · 잔여 목숨 P1:${s.livesLeft[0]} / P2:${s.livesLeft[1]}`;
+});
+
+/* ---------- LLM 영향도 비교 (Baseline vs ON) ---------- */
+function metricsOf(agg){
+  const n=agg.games, R=agg.roundCount;
+  const betTot = agg.finalBetDist.reduce((s,x)=>s+x,0);
+  return {
+    winP1: agg.winP1/n*100,
+    winP2: agg.winP2/n*100,
+    draws: agg.draws/n*100,
+    avgRounds: R/n,
+    foldRate: (agg.folds[0]+agg.folds[1])/R*100,
+    avgBet: agg.finalBetDist.reduce((s,x,i)=>s+x*i,0)/Math.max(1,betTot),
+    lowestP2: agg.gaveLowest[1]/Math.max(1,agg.gives[1])*100,
+    llmRate: agg.llmRounds ? agg.llmTriggers/agg.llmRounds*100 : 0,
+  };
+}
+
+function renderLlmCompare(off, on, n){
+  $("#llmCompareSec").classList.remove("hidden");
+  const mo=metricsOf(off), mn=metricsOf(on);
+  const rows=[
+    ["P1 승률 (%)", mo.winP1, mn.winP1, 3],
+    ["P2 승률 (%)", mo.winP2, mn.winP2, 3],
+    ["무승부 (%)", mo.draws, mn.draws, 3],
+    ["평균 게임 길이 (판)", mo.avgRounds, mn.avgRounds, 0.3],
+    ["폴드율 (%)", mo.foldRate, mn.foldRate, 3],
+    ["평균 최종 베팅 (발)", mo.avgBet, mn.avgBet, 0.15],
+    ["P2 최저카드 제공률 (%)", mo.lowestP2, mn.lowestP2, 3],
+  ];
+  const tbl=$("#llmCompareTable");
+  tbl.innerHTML = "<tr><th>지표</th><th>Baseline (LLM OFF)</th><th>LLM ON</th><th>변화</th></tr>" +
+    rows.map(([label,a,b,thr])=>{
+      const delta=b-a;
+      const cls = Math.abs(delta)>=thr ? "notable" : "";
+      return `<tr><td>${label}</td><td>${a.toFixed(2)}</td><td>${b.toFixed(2)}</td><td class="${cls}">${delta>=0?"+":""}${delta.toFixed(2)}</td></tr>`;
+    }).join("");
+  $("#llmCompareNote").innerHTML =
+    `${n.toLocaleString()}게임 · 동일 시드로 두 번 실행해 무작위성이 아닌 LLM 개입 자체의 효과만 비교한다. LLM ON 개입률 ${mn.llmRate.toFixed(1)}% · 파란색 강조는 임계치 이상 변화(참고용, 우열 판단 아님).`;
+}
+
+$("#llmCompareBtn").addEventListener("click",()=>{
+  const cfg=readCfg(), agents=[readAgent(0),readAgent(1)];
+  const baseLlm = readLlmCfg();
+  const seed = +$("#seed").value||12345;
+  const n = Math.max(500, Math.min(8000, +$("#iterations").value||3000));
+  const offCfg = Object.assign({}, baseLlm, {enabled:false});
+  const onCfg = Object.assign({}, baseLlm, {enabled:true});
+  $("#llmCompareBtn").disabled = true; $("#progTxt").textContent = "LLM 비교 실행 중…";
+  setTimeout(()=>{
+    const aggOff = runBatch(cfg, agents, n, seed, offCfg);
+    const aggOn = runBatch(cfg, agents, n, seed, onCfg);
+    renderLlmCompare(aggOff, aggOn, n);
+    $("#llmCompareBtn").disabled=false; $("#progTxt").textContent="LLM 비교 완료";
+    $("#llmCompareSec").scrollIntoView({behavior:"smooth",block:"start"});
+  }, 20);
 });
 
 /* 기본 프리셋 = Stage 1 */
